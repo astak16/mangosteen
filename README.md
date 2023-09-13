@@ -80,7 +80,7 @@ func MySQLDatabase() {
 
 ## 工具
 
-### cobra 
+### cobra
 
 使用 `go build .; ./mangosteen server`
 
@@ -124,7 +124,7 @@ migrate create -ext sql -dir config/migrations -seq create_users_table
 运行迁移文件：
 
 ```bash
-migrate -database "postgres://mangosteen:123456@go-mangosteen:5432/mangosteen_dev?sslmode=disable" -source "file://$(pwd)/config/migrations" up 
+migrate -database "postgres://mangosteen:123456@go-mangosteen:5432/mangosteen_dev?sslmode=disable" -source "file://$(pwd)/config/migrations" up
 ```
 
 ### 发送邮件
@@ -181,8 +181,10 @@ func Send() {
 export EMAIL_STMP_HOST="smtp.qq.com"
 export EMAIL_STMP_PORT=465
 export EMAIL_USERNAME="1500846601@qq.com"
-export EMAIL_PASSWORD="mihdblyiqyosgffa"
+export EMAIL_PASSWORD="xxxx"
 ```
+
+邮件测试可以使用 `MailHog`，安装 `go install github.com/mailhog/MailHog@latest`
 
 ### vscode 调试
 
@@ -204,16 +206,53 @@ export EMAIL_PASSWORD="mihdblyiqyosgffa"
 ## 代码
 
 1. 随机字符串：
-    ```go
-    var letterRuns = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    func init() {
-      rand.New(rand.NewSource(time.Now().UnixNano()))
-    }
-    func RandStringRunes(n int) string {
-      b := make([]rune, n)
-      for i := range b {
-        b[i] = letterRuns[rand.Intn(len(letterRuns))]
-      }
-      return string(b)
-    }
-    ```
+   ```go
+   var letterRuns = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+   func init() {
+     and.New(rand.NewSource(time.Now().UnixNano()))
+   }
+   func RandStringRunes(n int) string {
+     b := make([]rune, n)
+     for i := range b {
+       b[i] = letterRuns[rand.Intn(len(letterRuns))]
+     }
+     return string(b)
+   }
+   ```
+2. 随机数（真随机）
+   ```go
+   func randNumber(len int) (string, error) {
+     b := make([]byte, len)
+     if _, err := rand.Read(b); err != nil {
+       return "", err
+     }
+     digits := make([]byte, len)
+     for i := range b {
+       digits[i] = b[i]%10 + 48 // 将数字变成字符串，48 是 "0" 的 ASCII 码
+     }
+     return string(digits), nil
+   }
+   ```
+   这两种方案是一样的，
+   ```go
+   func randNumber(len int) (string, error) {
+     b := make([]byte, len)
+     if _, err := rand.Read(b); err != nil {
+       return "", err
+     }
+     digits := make([]string, len)
+     for i := range b {
+       digits[i] = strconv.Itoa(int(b[i])) // 先将数字转换成字符串
+     }
+     return strings.Join(digits, ""), nil
+   }
+   ```
+3. 在 `go` 中，`test` 文件不会运行 `main` 文件中的代码，所以在运行 `test` 文件时，需要相关初始化需要独自运行
+
+## 书籍
+
+1. 100 Go Mistakes and How to Avoid Them
+2. go 程序员面试宝典
+3. go 语言高并发与微服务实战
+4. go 语言精进之路
+5. 数据密集型应用系统设计

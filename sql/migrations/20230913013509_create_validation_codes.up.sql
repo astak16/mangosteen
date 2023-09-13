@@ -1,4 +1,3 @@
--- 
 create table validation_codes (
     id SERIAL PRIMARY KEY,
     code VARCHAR(20) NOT NULL,

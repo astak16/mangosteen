@@ -10,6 +10,7 @@ func New() *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/ping", controller.Ping)
+	r.POST("/api/v1/validation_codes", controller.CreateValidationCode)
 
 	return r
 }

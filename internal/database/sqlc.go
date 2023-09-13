@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"mangosteen/sql/queries"
 	"os"
 	"os/exec"
 
@@ -25,6 +26,10 @@ func Connect() {
 		log.Fatalln(err)
 	}
 	log.Println("Connected to database")
+}
+
+func NewQuery() *queries.Queries {
+	return queries.New(DB)
 }
 
 func CreateMigration(filename string) {

@@ -29,10 +29,10 @@ const (
 // 	log.Println("Connected to database")
 // }
 
-func Close() {
-	DB.Close()
-	log.Println("Close database connection")
-}
+//	func Close() {
+//		DB.Close()
+//		log.Println("Close database connection")
+//	}
 func CreateTables() {
 	sqlStatement := `
 	CREATE TABLE users (

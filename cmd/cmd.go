@@ -86,7 +86,7 @@ func Run() {
 				log.Fatalln(err)
 			}
 			port := "8888"
-			if len(args[0]) > 0 {
+			if len(args) > 0 {
 				port = args[0]
 			}
 			fmt.Printf("start server: http://localhost:%s/coverage/index.html\n", port)

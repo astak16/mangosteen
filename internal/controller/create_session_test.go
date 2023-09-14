@@ -16,6 +16,7 @@ import (
 func TestCreateSession(t *testing.T) {
 	teardownTest := setupTest(t)
 	defer teardownTest(t)
+
 	sc := SessionController{}
 	sc.RegisterRoutes(r.Group("/api"))
 
@@ -24,8 +25,8 @@ func TestCreateSession(t *testing.T) {
 	}
 
 	j := queries.CreateValidationCodeParams{
-		Email: "1500846601@qq.com",
-		Code:  "11111",
+		Email: "15006601@qq.com",
+		Code:  "2345",
 	}
 
 	w := httptest.NewRecorder()

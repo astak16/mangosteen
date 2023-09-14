@@ -14,9 +14,9 @@ import (
 )
 
 func Connect() {
-	if DB != nil {
-		return
-	}
+	// if DB != nil {
+	// 	return
+	// }
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, passrord, dbname)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -77,4 +77,9 @@ func MigrateDown() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func Close() {
+	DB.Close()
+	log.Println("Close database connection")
 }

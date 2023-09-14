@@ -11,6 +11,7 @@ func New() *gin.Engine {
 
 	r.GET("/ping", controller.Ping)
 	r.POST("/api/v1/validation_codes", controller.CreateValidationCode)
+	r.POST("/api/v1/session", controller.CreateSession)
 
 	return r
 }

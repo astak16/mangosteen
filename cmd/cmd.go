@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"mangosteen/global"
 	"mangosteen/internal/database"
 	"mangosteen/internal/email"
+	"mangosteen/internal/jwt_helper"
 	"mangosteen/internal/router"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -53,10 +57,23 @@ func Run() {
 			email.Send()
 		},
 	}
+
+	generateHMACKeyCmd := &cobra.Command{
+		Use: "generateHMACKey",
+		Run: func(cmd *cobra.Command, args []string) {
+			bytes, _ := jwt_helper.GenerateHMACKey()
+			fmt.Println(global.JwtPath)
+			if err := os.WriteFile(global.JwtPath, bytes, 0644); err != nil {
+				log.Fatalln(err)
+			}
+			fmt.Println("HMAC key generated")
+		},
+	}
+
 	database.Connect()
 	defer database.Close()
 
-	rootCmd.AddCommand(srvCmd, dbCmd, emailCmd)
+	rootCmd.AddCommand(srvCmd, dbCmd, emailCmd, generateHMACKeyCmd)
 	dbCmd.AddCommand(createMigrate, migrateCmd, migrateDownCmd)
 
 	rootCmd.Execute()

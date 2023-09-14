@@ -9,8 +9,9 @@ import (
 )
 
 func InitViper() {
-	viperConfig := struct {
+	config := struct {
 		Viper config.ViperConfig
+		Jwt   struct{ Path string }
 	}{}
 
 	viper.AutomaticEnv()
@@ -23,8 +24,10 @@ func InitViper() {
 		log.Fatalln(err)
 	}
 
-	if err := viper.Unmarshal(&viperConfig); err != nil {
+	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatalln(err)
 	}
-	global.ViperConfig = viperConfig.Viper
+	global.ViperConfig = config.Viper
+	global.RootPath = pwd
+	global.JwtPath = pwd + "/" + config.Jwt.Path
 }

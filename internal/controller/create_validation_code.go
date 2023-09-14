@@ -33,7 +33,7 @@ func CreateValidationCode(c *gin.Context) {
 	})
 	if err != nil {
 		log.Println("[CreateValidationCode Fail]", err)
-		c.String(400, "创建失败")
+		c.String(401, "创建失败")
 		return
 	}
 

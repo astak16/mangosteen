@@ -14,6 +14,9 @@ import (
 )
 
 func Connect() {
+	if DB != nil {
+		return
+	}
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, passrord, dbname)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -34,7 +37,7 @@ func NewQuery() *queries.Queries {
 
 func CreateMigration(filename string) {
 	fmt.Println(filename, "uccs")
-	err := exec.Command("migrate", "create", "-ext", "sql", "-dir", "config/migrations", filename).Run()
+	err := exec.Command("migrate", "create", "-ext", "sql", "-dir", "sql/migrations", filename).Run()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -46,7 +49,7 @@ func Migrate() {
 		log.Fatalln(err)
 	}
 	m, err := migrate.New(
-		fmt.Sprintf("file://%s/config/migrations", pwd),
+		fmt.Sprintf("file://%s/sql/migrations", pwd),
 		"postgres://mangosteen:123456@go-mangosteen:5432/mangosteen_dev?sslmode=disable",
 	)
 	if err != nil {
@@ -64,7 +67,7 @@ func MigrateDown() {
 		log.Fatalln(err)
 	}
 	m, err := migrate.New(
-		fmt.Sprintf("file://%s/config/migrations", pwd),
+		fmt.Sprintf("file://%s/sql/migrations", pwd),
 		"postgres://mangosteen:123456@go-mangosteen:5432/mangosteen_dev?sslmode=disable",
 	)
 	if err != nil {

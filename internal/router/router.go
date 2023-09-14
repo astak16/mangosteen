@@ -1,7 +1,9 @@
 package router
 
 import (
+	"mangosteen/config"
 	"mangosteen/internal/controller"
+	"mangosteen/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,6 +12,7 @@ func loadControllers() []controller.Controller {
 	return []controller.Controller{
 		&controller.PingController{},
 		&controller.MeController{},
+		&controller.ItemController{},
 		&controller.SessionController{},
 		&controller.ValidationCodeController{},
 	}
@@ -17,6 +20,7 @@ func loadControllers() []controller.Controller {
 
 func New() *gin.Engine {
 	r := gin.Default()
+	r.Use(middleware.Me(config.WhiteList))
 
 	api := r.Group("/api")
 

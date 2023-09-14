@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"mangosteen/config"
 	"mangosteen/initialize"
 	"mangosteen/internal/database"
+	"mangosteen/internal/middleware"
 	"mangosteen/sql/queries"
 	"testing"
 
@@ -18,6 +20,7 @@ func setupTest(t *testing.T) func(t *testing.T) {
 	database.Connect()
 	initialize.InitViper()
 	r = gin.Default()
+	r.Use(middleware.Me(config.WhiteList))
 
 	q = database.NewQuery()
 

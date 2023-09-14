@@ -3,7 +3,9 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"mangosteen/internal/jwt_helper"
+	"mangosteen/utils"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,8 +32,11 @@ func TestGetMeWithJwt(t *testing.T) {
 
 	mc := MeController{}
 	mc.RegisterRoutes(r.Group("/api"))
-
-	u, err := q.CreateUser(context.Background(), "11dawdafst1@qq.com")
+	randNumber, err := utils.RandNumber(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	u, err := q.CreateUser(context.Background(), fmt.Sprintf(`%s@qq.com`, randNumber))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -10,7 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateSession(c *gin.Context) {
+type SessionController struct{}
+
+func (ctrl *SessionController) RegisterRoutes(rg *gin.RouterGroup) {
+	v1 := rg.Group("/v1")
+	v1.POST("/session", ctrl.Create)
+}
+func (ctrl *SessionController) Create(c *gin.Context) {
 	var requestBody struct {
 		Email string `json:"email" binding:"required"`
 		Code  string `json:"code" binding:"required"`
@@ -50,3 +56,7 @@ func CreateSession(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "登录成功", "jwt": jwt, "userId": user_id})
 }
+func (ctrl *SessionController) Destroy(c *gin.Context)  {}
+func (ctrl *SessionController) Update(c *gin.Context)   {}
+func (ctrl *SessionController) Get(c *gin.Context)      {}
+func (ctrl *SessionController) GetPaged(c *gin.Context) {}

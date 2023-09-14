@@ -8,7 +8,9 @@ import (
 	"mangosteen/internal/email"
 	"mangosteen/internal/jwt_helper"
 	"mangosteen/internal/router"
+	"net/http"
 	"os"
+	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -70,10 +72,34 @@ func Run() {
 		},
 	}
 
+	coverCmd := &cobra.Command{
+		Use: "cover",
+		Run: func(cmd *cobra.Command, args []string) {
+			os.MkdirAll("coverage", os.ModePerm)
+			if err := exec.Command("MailHog").Start(); err != nil {
+				log.Println(err)
+			}
+			if err := exec.Command("go", "test", "-coverprofile=coverage/coverage.out", "./...").Run(); err != nil {
+				log.Fatalln(err)
+			}
+			if err := exec.Command("go", "tool", "cover", "-html=coverage/coverage.out", "-o", "coverage/index.html").Run(); err != nil {
+				log.Fatalln(err)
+			}
+			port := "8888"
+			if len(args[0]) > 0 {
+				port = args[0]
+			}
+			fmt.Printf("start server: http://localhost:%s/coverage/index.html\n", port)
+			if err := http.ListenAndServe(":"+port, http.FileServer(http.Dir("."))); err != nil {
+				log.Fatalln(err)
+			}
+		},
+	}
+
 	database.Connect()
 	defer database.Close()
 
-	rootCmd.AddCommand(srvCmd, dbCmd, emailCmd, generateHMACKeyCmd)
+	rootCmd.AddCommand(srvCmd, dbCmd, emailCmd, generateHMACKeyCmd, coverCmd)
 	dbCmd.AddCommand(createMigrate, migrateCmd, migrateDownCmd)
 
 	rootCmd.Execute()

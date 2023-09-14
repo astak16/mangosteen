@@ -1,11 +1,8 @@
-package controller_test
+package controller
 
 import (
 	"context"
 	"mangosteen/config"
-	"mangosteen/initialize"
-	"mangosteen/internal/database"
-	"mangosteen/internal/router"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,19 +13,19 @@ import (
 )
 
 func TestCreateValidationCode(t *testing.T) {
-	r := router.New()
+	teardownTest := setupTest(t)
+	defer teardownTest(t)
+
+	vcc := ValidationCodeController{}
+	vcc.RegisterRoutes(r.Group("/api"))
+
 	email := "1500846601@qq.com"
 	viper.Set("viper", &config.ViperConfig{
 		Host: "localhost",
 		Port: 1025,
 	})
-	database.Connect()
-	defer database.Close()
 
-	q := database.NewQuery()
 	count1, _ := q.CountValidationCodes(context.Background(), email)
-
-	initialize.InitViper()
 
 	w := httptest.NewRecorder()
 	data := strings.NewReader(`{"email":"` + email + `"}`)

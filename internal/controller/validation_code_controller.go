@@ -10,7 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateValidationCode(c *gin.Context) {
+type ValidationCodeController struct{}
+
+func (ctrl *ValidationCodeController) RegisterRoutes(rg *gin.RouterGroup) {
+	v1 := rg.Group("/v1")
+	v1.POST("/validation_codes", ctrl.Create)
+}
+func (ctrl *ValidationCodeController) Create(c *gin.Context) {
 	var body struct {
 		Email string `json:"email" binding:"required,email"`
 	}
@@ -48,3 +54,7 @@ func CreateValidationCode(c *gin.Context) {
 		"message": "pong",
 	})
 }
+func (ctrl *ValidationCodeController) Destroy(c *gin.Context)  {}
+func (ctrl *ValidationCodeController) Update(c *gin.Context)   {}
+func (ctrl *ValidationCodeController) Get(c *gin.Context)      {}
+func (ctrl *ValidationCodeController) GetPaged(c *gin.Context) {}

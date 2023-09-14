@@ -8,6 +8,8 @@ import (
 
 func loadControllers() []controller.Controller {
 	return []controller.Controller{
+		&controller.PingController{},
+		&controller.MeController{},
 		&controller.SessionController{},
 		&controller.ValidationCodeController{},
 	}
@@ -21,8 +23,6 @@ func New() *gin.Engine {
 	for _, ctrl := range loadControllers() {
 		ctrl.RegisterRoutes(api)
 	}
-
-	r.GET("/ping", controller.Ping)
 
 	return r
 }

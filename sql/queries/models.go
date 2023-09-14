@@ -10,18 +10,18 @@ import (
 )
 
 type User struct {
-	ID        int32
-	Email     string
-	Address   string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        int32     `json:"id"`
+	Email     string    `json:"email"`
+	Address   string    `json:"address"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type ValidationCode struct {
-	ID        int32
-	Code      string
-	Email     string
-	UsedAt    sql.NullTime
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        int32        `json:"id"`
+	Code      string       `json:"code"`
+	Email     string       `json:"email"`
+	UsedAt    sql.NullTime `json:"used_at"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 }

@@ -25,8 +25,8 @@ INSERT INTO validation_codes (email, code) VALUES ($1, $2) RETURNING id, code, e
 `
 
 type CreateValidationCodeParams struct {
-	Email string
-	Code  string
+	Email string `json:"email"`
+	Code  string `json:"code"`
 }
 
 func (q *Queries) CreateValidationCode(ctx context.Context, arg CreateValidationCodeParams) (ValidationCode, error) {
@@ -48,8 +48,8 @@ SELECT id, code, email, used_at, created_at, updated_at FROM validation_codes WH
 `
 
 type FindValidationCodeParams struct {
-	Email string
-	Code  string
+	Email string `json:"email"`
+	Code  string `json:"code"`
 }
 
 func (q *Queries) FindValidationCode(ctx context.Context, arg FindValidationCodeParams) (ValidationCode, error) {

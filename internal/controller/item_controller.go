@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"fmt"
+	"log"
 	"mangosteen/api"
 	"mangosteen/internal/database"
 	"mangosteen/sql/queries"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nav-inc/datetime"
 )
 
 type ItemController struct {
@@ -20,6 +21,7 @@ func (ctrl *ItemController) RegisterRoutes(rg *gin.RouterGroup) {
 	v1 := rg.Group("/v1")
 	v1.POST("/items", ctrl.Create)
 	v1.GET("/items", ctrl.GetPaged)
+	v1.GET("/items/balance", ctrl.GetBalance)
 	ctrl.PerPage = 10
 }
 func (ctrl *ItemController) Create(c *gin.Context) {
@@ -66,14 +68,14 @@ func (ctrl *ItemController) GetPaged(c *gin.Context) {
 
 	happenedBefore, has := c.Params.Get("happened_before")
 	if has {
-		if t, err := time.Parse(time.RFC3339, happenedBefore); err == nil {
+		if t, err := datetime.Parse(happenedBefore, time.Local); err == nil {
 			params.HappenedBefore = t
 		}
 	}
 
 	happenedAfter, has := c.Params.Get("happened_after")
 	if has {
-		if t, err := time.Parse(time.RFC3339, happenedAfter); err == nil {
+		if t, err := datetime.Parse(happenedAfter, time.Local); err == nil {
 			params.HappenedAfter = t
 		}
 	}
@@ -92,7 +94,6 @@ func (ctrl *ItemController) GetPaged(c *gin.Context) {
 		c.JSON(500, gin.H{"message": "服务器错误"})
 		return
 	}
-	fmt.Println(len(items), count, "=--------------=============-----")
 	c.JSON(http.StatusOK, api.GetPagedItemsResponse{
 		Resources: items,
 		Pager: api.Pager{
@@ -101,4 +102,45 @@ func (ctrl *ItemController) GetPaged(c *gin.Context) {
 			Count:   int32(count),
 		},
 	})
+}
+
+func (ctrl *ItemController) GetBalance(c *gin.Context) {
+
+	// query := c.Request.URL.Query()
+	// happenedBeforeString := query["happened_before"][0]
+	// happenedAfterString := query["happened_after"][0]
+	happenedBeforeString := c.Query("happened_before")
+	happenedAfterString := c.Query("happened_after")
+
+	happenedBefore, err := datetime.Parse(happenedBeforeString, time.Local)
+	if err != nil {
+		happenedBefore = time.Now().AddDate(1, 0, 0)
+	}
+	happenedAfter, err := datetime.Parse(happenedAfterString, time.Local)
+	if err != nil {
+		happenedAfter = time.Now().AddDate(-100, 0, 0)
+	}
+
+	q := database.NewQuery()
+	items, err := q.ListItemsHappenedBetween(c, queries.ListItemsHappenedBetweenParams{
+		HappenedBefore: happenedBefore,
+		HappenedAfter:  happenedAfter,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"message": "服务器错误"})
+		log.Println(err)
+		return
+	}
+
+	var r api.GetBalanceResponse
+	for _, item := range items {
+		if item.Kind == queries.KindInCome {
+			r.Income += int32(item.Amount)
+		} else {
+			r.Expenses += int32(item.Amount)
+		}
+	}
+	r.Balance = r.Income - r.Expenses
+	c.JSON(http.StatusOK, r)
+
 }

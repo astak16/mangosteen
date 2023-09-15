@@ -15,14 +15,26 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at tiMESTAMP NOT NULL DEFAULT now()
 );
 
-CREATE TYPE kind AS ENUM ('expense', 'in_come');
+-- CREATE TYPE kind AS ENUM ('expense', 'in_come');
 CREATE TABLE items (
   id SERIAL PRIMARY KEY,
   user_id SERIAL NOT NULL,
   amount INTEGER NOT NULL,
   tag_ids INTEGER[] NOT NULL,
-  kind kind NOT NULL,
+  kind VARCHAR(100) NOT NULL DEFAULT 'expenses',
   happened_at TIMESTAMP NOT NULL DEFAULT NOW(),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS tags (
+  id SERIAL PRIMARY KEY,
+  user_id SERIAL NOT NULL,
+  name VARCHAR(50) NOT NULL,
+  sign VARCHAR(10) NOT NULL,
+  kind VARCHAR(100) NOT NULL DEFAULT 'expenses',
+  deleted_at TIMESTAMP,
+  created_at TIMESTAMP NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+ 

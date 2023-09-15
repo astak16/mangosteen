@@ -44,8 +44,10 @@ func signIn(t *testing.T, req *http.Request) queries.User {
 		t.Fatal(err)
 	}
 	jwtString, _ := jwt_helper.GenerateJWT(int(u.ID))
-	req.Header = http.Header{
-		"Authorization": []string{"Bearer " + jwtString},
+	if req != nil {
+		req.Header = http.Header{
+			"Authorization": []string{"Bearer " + jwtString},
+		}
 	}
 	return u
 }

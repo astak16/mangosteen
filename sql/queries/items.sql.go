@@ -30,7 +30,7 @@ INSERT INTO items (user_id, amount, kind, happened_at, tag_ids ) VALUES ($1, $2,
 type CreateItemParams struct {
 	UserID     int32     `json:"user_id"`
 	Amount     int32     `json:"amount"`
-	Kind       Kind      `json:"kind"`
+	Kind       string    `json:"kind"`
 	HappenedAt time.Time `json:"happened_at"`
 	TagIds     []int32   `json:"tag_ids"`
 }

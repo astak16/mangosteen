@@ -42,7 +42,7 @@ func TestCreateItem(t *testing.T) {
 	if err := json.Unmarshal([]byte(body), &j); err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, u.ID, j.Resource.ID)
+	assert.Equal(t, u.ID, j.Resource.UserID)
 	assert.Equal(t, int32(100), j.Resource.Amount)
 }
 

@@ -12,6 +12,7 @@ func loadControllers() []controller.Controller {
 	return []controller.Controller{
 		&controller.PingController{},
 		&controller.MeController{},
+		&controller.TagController{},
 		&controller.ItemController{},
 		&controller.SessionController{},
 		&controller.ValidationCodeController{},

@@ -6,10 +6,10 @@ import (
 )
 
 type CreateItemRequest struct {
-	Amount     int32        `json:"amount" binding:"required"`
-	Kind       queries.Kind `json:"kind" binding:"required"`
-	HappenedAt time.Time    `json:"happened_at" binding:"required"`
-	TagIds     []int32      `json:"tag_ids" binding:"required"`
+	Amount     int32     `json:"amount" binding:"required"`
+	Kind       string    `json:"kind" binding:"required"`
+	HappenedAt time.Time `json:"happened_at" binding:"required"`
+	TagIds     []int32   `json:"tag_ids" binding:"required"`
 }
 
 type CreateItemResponse struct {

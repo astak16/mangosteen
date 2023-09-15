@@ -26,10 +26,10 @@ func (ctrl *ItemController) RegisterRoutes(rg *gin.RouterGroup) {
 }
 func (ctrl *ItemController) Create(c *gin.Context) {
 	var body struct {
-		Amount     int32        `json:"amount" binding:"required"`
-		Kind       queries.Kind `json:"kind" binding:"required"`
-		HappenedAt time.Time    `json:"happened_at" binding:"required"`
-		TagIds     []int32      `json:"tag_ids" binding:"required"`
+		Amount     int32     `json:"amount" binding:"required"`
+		Kind       string    `json:"kind" binding:"required"`
+		HappenedAt time.Time `json:"happened_at" binding:"required"`
+		TagIds     []int32   `json:"tag_ids" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(422, gin.H{"message ": "请求参数有误"})
@@ -134,7 +134,7 @@ func (ctrl *ItemController) GetBalance(c *gin.Context) {
 
 	var r api.GetBalanceResponse
 	for _, item := range items {
-		if item.Kind == queries.KindInCome {
+		if item.Kind == "in_come" {
 			r.Income += int32(item.Amount)
 		} else {
 			r.Expenses += int32(item.Amount)

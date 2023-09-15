@@ -13,7 +13,6 @@ import (
 func Me(whitelist []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
-		fmt.Println(path, "---------------------")
 		if indexOf(whitelist, path) != -1 {
 			c.Next()
 			return

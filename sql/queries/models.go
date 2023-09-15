@@ -6,8 +6,63 @@ package queries
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
+
+type Kind string
+
+const (
+	KindExpense Kind = "expense"
+	KindInCome  Kind = "in_come"
+)
+
+func (e *Kind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Kind(s)
+	case string:
+		*e = Kind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Kind: %T", src)
+	}
+	return nil
+}
+
+type NullKind struct {
+	Kind  Kind `json:"kind"`
+	Valid bool `json:"valid"` // Valid is true if Kind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.Kind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Kind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Kind), nil
+}
+
+type Item struct {
+	ID         int32     `json:"id"`
+	UserID     int32     `json:"user_id"`
+	Amount     int32     `json:"amount"`
+	TagIds     []int32   `json:"tag_ids"`
+	Kind       Kind      `json:"kind"`
+	HappenedAt time.Time `json:"happened_at"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
 
 type User struct {
 	ID        int32     `json:"id"`

@@ -107,6 +107,59 @@ func (q *Queries) ListItem(ctx context.Context, arg ListItemParams) ([]Item, err
 	return items, nil
 }
 
+const listItemsByHappenedAtAndKind = `-- name: ListItemsByHappenedAtAndKind :many
+SELECT id, user_id, amount, tag_ids, kind, happened_at, created_at, updated_at FROM items 
+WHERE happened_at >= $1 
+AND happened_at < $2 
+AND kind = $3 
+AND user_id = $4
+ORDER BY happened_at DESC
+`
+
+type ListItemsByHappenedAtAndKindParams struct {
+	HappenedAfter  time.Time `json:"happened_after"`
+	HappenedBefore time.Time `json:"happened_before"`
+	Kind           string    `json:"kind"`
+	UserID         int32     `json:"user_id"`
+}
+
+func (q *Queries) ListItemsByHappenedAtAndKind(ctx context.Context, arg ListItemsByHappenedAtAndKindParams) ([]Item, error) {
+	rows, err := q.db.QueryContext(ctx, listItemsByHappenedAtAndKind,
+		arg.HappenedAfter,
+		arg.HappenedBefore,
+		arg.Kind,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Item
+	for rows.Next() {
+		var i Item
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Amount,
+			pq.Array(&i.TagIds),
+			&i.Kind,
+			&i.HappenedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listItemsHappenedBetween = `-- name: ListItemsHappenedBetween :many
 SELECT id, user_id, amount, tag_ids, kind, happened_at, created_at, updated_at FROM items WHERE happened_at >= $1 AND happened_at < $2 ORDER BY happened_at DESC
 `

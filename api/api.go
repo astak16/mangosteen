@@ -5,3 +5,7 @@ type Pager struct {
 	PerPage int32 `json:"per_page"`
 	Count   int32 `json:"count"`
 }
+
+type ErrorResponse struct {
+	Errors map[string][]string `json:"errors"`
+}

@@ -1,15 +1,18 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"mangosteen/api"
 	"mangosteen/internal/database"
 	"mangosteen/sql/queries"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/nav-inc/datetime"
 )
 
@@ -22,6 +25,7 @@ func (ctrl *ItemController) RegisterRoutes(rg *gin.RouterGroup) {
 	v1.POST("/items", ctrl.Create)
 	v1.GET("/items", ctrl.GetPaged)
 	v1.GET("/items/balance", ctrl.GetBalance)
+	v1.GET("/items/summary", ctrl.GetSummary)
 	ctrl.PerPage = 10
 }
 func (ctrl *ItemController) Create(c *gin.Context) {
@@ -143,4 +147,102 @@ func (ctrl *ItemController) GetBalance(c *gin.Context) {
 	r.Balance = r.Income - r.Expenses
 	c.JSON(http.StatusOK, r)
 
+}
+
+func (ctrl *ItemController) GetSummary(c *gin.Context) {
+	var query api.GetSummaryRequest
+	if err := c.ShouldBindQuery(&query); err != nil {
+		r := api.ErrorResponse{Errors: map[string][]string{}}
+		switch x := err.(type) {
+		case (validator.ValidationErrors):
+			for _, ve := range x {
+				t := ve.Tag()
+				f := ve.Field()
+				if r.Errors[f] == nil {
+					r.Errors[f] = []string{}
+				}
+				r.Errors[f] = append(r.Errors[f], t)
+			}
+			fmt.Println(r)
+			c.JSON(http.StatusUnprocessableEntity, r)
+		default:
+			c.Status(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	me, _ := c.Get("me")
+	user, _ := me.(queries.User)
+	q := database.NewQuery()
+	items, err := q.ListItemsByHappenedAtAndKind(c, queries.ListItemsByHappenedAtAndKindParams{
+		UserID:         user.ID,
+		Kind:           query.Kind,
+		HappenedAfter:  query.HappenedAfter,
+		HappenedBefore: query.HappenedBefore,
+	})
+	if err != nil {
+		c.JSON(500, gin.H{"message": "服务器错误"})
+		return
+	}
+
+	if query.GroupBy == "happened_at" {
+		res := api.GetSummaryHappenedAtResponse{}
+		res.Total = 0
+		res.Groups = []api.HappenedAtWithGroup{}
+
+		for _, item := range items {
+			k := item.HappenedAt.Format("2006-01-02")
+			res.Total += item.Amount
+			found := false
+			for index, group := range res.Groups {
+				if group.HappenedAt == k {
+					found = true
+					res.Groups[index].Amount += item.Amount
+				}
+			}
+			if !found {
+				res.Groups = append(res.Groups, api.HappenedAtWithGroup{
+					Amount:     item.Amount,
+					HappenedAt: k,
+				})
+			}
+		}
+
+		sort.Slice(res.Groups, func(i, j int) bool {
+			return res.Groups[i].HappenedAt < res.Groups[j].HappenedAt
+		})
+		c.JSON(200, res)
+	} else if query.GroupBy == "tag_id" {
+		res := api.GetSummaryByTagIDResponse{}
+		res.Total = 0
+		res.Groups = []api.TagIDWithGroup{}
+
+		for _, item := range items {
+			if len(item.TagIds) == 0 {
+				continue
+			}
+			k := item.TagIds[0]
+			res.Total += item.Amount
+			found := false
+			for index, group := range res.Groups {
+				if group.TagID == k {
+					found = true
+					res.Groups[index].Amount += item.Amount
+				}
+			}
+			if !found {
+				res.Groups = append(res.Groups, api.TagIDWithGroup{
+					Amount: item.Amount,
+					TagID:  k,
+				})
+			}
+		}
+
+		sort.Slice(res.Groups, func(i, j int) bool {
+			return res.Groups[i].TagID < res.Groups[j].TagID
+		})
+		c.JSON(200, res)
+	} else {
+		c.JSON(422, gin.H{"message": "参数错误"})
+	}
 }

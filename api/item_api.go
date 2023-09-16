@@ -5,6 +5,34 @@ import (
 	"time"
 )
 
+type GetSummaryRequest struct {
+	HappenedBefore time.Time `form:"happened_before" binding:"required"`
+	HappenedAfter  time.Time `form:"happened_after" binding:"required"`
+	Kind           string    `form:"kind" binding:"required,oneof=expenses in_come"`
+	GroupBy        string    `form:"group_by" binding:"required,oneof=tag_id happened_at"`
+}
+
+type HappenedAtWithGroup struct {
+	Amount     int32  `json:"amount"`
+	HappenedAt string `json:"happened_at"`
+}
+
+type GetSummaryHappenedAtResponse struct {
+	Groups []HappenedAtWithGroup `json:"groups"`
+	Total  int32                 `json:"total"`
+}
+
+type TagIDWithGroup struct {
+	TagID  int32       `json:"tag_id"`
+	Amount int32       `json:"amount"`
+	Tag    queries.Tag `json:"tag"`
+}
+
+type GetSummaryByTagIDResponse struct {
+	Groups []TagIDWithGroup `json:"groups"`
+	Total  int32            `json:"total"`
+}
+
 type CreateItemRequest struct {
 	Amount     int32     `json:"amount" binding:"required"`
 	Kind       string    `json:"kind" binding:"required"`

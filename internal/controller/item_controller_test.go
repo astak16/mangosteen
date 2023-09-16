@@ -64,7 +64,7 @@ func TestCreateItemWithError(t *testing.T) {
 	assert.Equal(t, 422, w.Code)
 }
 
-func TestGetPagesItems(t *testing.T) {
+func TestGetPageItems(t *testing.T) {
 	teardownTest := setupTest(t)
 	defer teardownTest(t)
 	if err := q.DeleteAllItems(context.Background()); err != nil {

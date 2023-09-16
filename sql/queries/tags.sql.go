@@ -41,25 +41,134 @@ func (q *Queries) CreateTag(ctx context.Context, arg CreateTagParams) (Tag, erro
 	return i, err
 }
 
+const deleteTag = `-- name: DeleteTag :exec
+UPDATE tags SET deleted_at = NOW() WHERE id = $1
+`
+
+func (q *Queries) DeleteTag(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteTag, id)
+	return err
+}
+
+const findTag = `-- name: FindTag :one
+SELECT id, user_id, name, sign, kind, deleted_at, created_at, updated_at FROM tags WHERE id = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) FindTag(ctx context.Context, id int32) (Tag, error) {
+	row := q.db.QueryRowContext(ctx, findTag, id)
+	var i Tag
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Sign,
+		&i.Kind,
+		&i.DeletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getTag = `-- name: GetTag :one
+SELECT id, user_id, name, sign, kind, deleted_at, created_at, updated_at FROM tags WHERE user_id = $1 AND id = $2
+`
+
+type GetTagParams struct {
+	UserID int32 `json:"user_id"`
+	ID     int32 `json:"id"`
+}
+
+func (q *Queries) GetTag(ctx context.Context, arg GetTagParams) (Tag, error) {
+	row := q.db.QueryRowContext(ctx, getTag, arg.UserID, arg.ID)
+	var i Tag
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Sign,
+		&i.Kind,
+		&i.DeletedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const listTags = `-- name: ListTags :many
+SELECT id, user_id, name, sign, kind, deleted_at, created_at, updated_at FROM tags WHERE user_id = $3 AND kind = $4 AND deleted_at IS NULL ORDER BY created_at DESC OFFSET $1 LIMIT $2
+`
+
+type ListTagsParams struct {
+	Offset int32  `json:"offset"`
+	Limit  int32  `json:"limit"`
+	UserID int32  `json:"user_id"`
+	Kind   string `json:"kind"`
+}
+
+func (q *Queries) ListTags(ctx context.Context, arg ListTagsParams) ([]Tag, error) {
+	rows, err := q.db.QueryContext(ctx, listTags,
+		arg.Offset,
+		arg.Limit,
+		arg.UserID,
+		arg.Kind,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Tag
+	for rows.Next() {
+		var i Tag
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Sign,
+			&i.Kind,
+			&i.DeletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateTag = `-- name: UpdateTag :one
-UPDATE tags SET user_id = $2, name = $3, sign = $4, kind = $5 WHERE id = $1 RETURNING id, user_id, name, sign, kind, deleted_at, created_at, updated_at
+UPDATE tags 
+SET 
+  user_id = $1, 
+  name = CASE WHEN $2::VARCHAR = '' THEN name ELSE $2 END, 
+  sign = CASE WHEN $3::VARCHAR = '' THEN sign ELSE $3 END, 
+  kind = CASE WHEN $4::VARCHAR = '' THEN kind ELSE $4 END 
+WHERE id = $5 
+RETURNING id, user_id, name, sign, kind, deleted_at, created_at, updated_at
 `
 
 type UpdateTagParams struct {
-	ID     int32  `json:"id"`
 	UserID int32  `json:"user_id"`
 	Name   string `json:"name"`
 	Sign   string `json:"sign"`
 	Kind   string `json:"kind"`
+	ID     int32  `json:"id"`
 }
 
 func (q *Queries) UpdateTag(ctx context.Context, arg UpdateTagParams) (Tag, error) {
 	row := q.db.QueryRowContext(ctx, updateTag,
-		arg.ID,
 		arg.UserID,
 		arg.Name,
 		arg.Sign,
 		arg.Kind,
+		arg.ID,
 	)
 	var i Tag
 	err := row.Scan(
